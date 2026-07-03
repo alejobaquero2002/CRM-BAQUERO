@@ -65,10 +65,42 @@ section{padding:70px 0}
 footer{background:var(--navy);color:#C8D4E8;text-align:center;padding:34px 0;font-size:13px}
 footer b{color:#fff}
 
+/* SOCIAL SIDEBAR */
+.social-sidebar{
+  position:fixed; left:18px; top:50%; transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:12px; z-index:200;
+}
+.social-sidebar a{
+  width:42px; height:42px; border-radius:50%; background:var(--navy);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:17px; text-decoration:none; box-shadow:0 4px 12px rgba(26,43,74,.25);
+  transition:transform .15s, background .15s;
+}
+.social-sidebar a:hover{ background:var(--gold); color:var(--navy); transform:scale(1.1); }
+.social-sidebar::before{
+  content:''; position:absolute; left:20px; top:-16px; width:1.5px; height:14px;
+  background:var(--bd);
+}
+@media(max-width:760px){
+  .social-sidebar{ left:auto; right:14px; top:auto; bottom:14px; transform:none; flex-direction:row; }
+  .social-sidebar::before{ display:none; }
+}
+
 @media(max-width:640px){ .hero h1{font-size:30px} }
 </style>
 </head>
 <body>
+
+<!-- ============================================================
+     BARRA DE REDES SOCIALES
+     Ajusta los enlaces "href" con tus URLs reales de cada red.
+============================================================ -->
+<nav class="social-sidebar">
+  <a href="https://instagram.com/baquero.contable" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+  <a href="https://www.facebook.com/share/1D9RgCh49f/" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+  <a href="https://tiktok.com/@baquero.contable" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+  <a href="https://wa.me/573222120235" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+</nav>
 
 <header>
   <div class="wrap">
@@ -118,7 +150,7 @@ footer b{color:#fff}
     <div class="price-card">
       <div class="badge">Temporada de Renta 2026</div>
       <h3>Plan Anual</h3>
-      <div class="amount">$XXX.000<span>COP</span></div>
+      <div class="amount">$60.000<span>COP</span></div>
       <div class="period">pago único · vigencia de 12 meses</div>
       <ul class="price-list">
         <li><i class="fas fa-check-circle"></i> Acceso ilimitado a la herramienta</li>
@@ -127,10 +159,14 @@ footer b{color:#fff}
         <li><i class="fas fa-check-circle"></i> Actualizaciones incluidas durante el año</li>
       </ul>
 
+      <a href="app.html" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:12px">
+        <i class="fas fa-right-to-bracket"></i> Ya tengo acceso · Iniciar sesión
+      </a>
+
       <!-- ============================================================
            WOMPI CHECKOUT — Widget de pago
-           Reemplaza YOUR_PUBLIC_KEY y el monto (en centavos) cuando
-           tengas tus llaves reales de Wompi.
+           Reemplaza YOUR_PUBLIC_KEY cuando tengas tus llaves reales
+           de Wompi para activar el cobro automático.
       ============================================================ -->
       <form id="wompi-form">
         <script
@@ -138,7 +174,7 @@ footer b{color:#fff}
           data-render="button"
           data-public-key="pub_test_REEMPLAZAR_CON_TU_LLAVE"
           data-currency="COP"
-          data-amount-in-cents="XXXXX00"
+          data-amount-in-cents="6000000"
           data-reference="renta2026-{{TIMESTAMP}}"
           data-redirect-url="https://TUHOSTING.netlify.app/gracias.html">
         </script>
@@ -150,7 +186,7 @@ footer b{color:#fff}
 <footer>
   <div class="wrap">
     <p><b>Baquero &amp; Asociados Contables</b> · CRM Tributario 2026</p>
-    <p style="margin-top:6px">@baquero.contable · Medellín, Colombia</p>
+    <p style="margin-top:6px">@baquero.contable · Villavicencio, Colombia</p>
   </div>
 </footer>
 

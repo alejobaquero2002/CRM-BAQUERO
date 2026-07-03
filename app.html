@@ -3152,15 +3152,19 @@ async function crmLogin(){
   miPerfilId = data.user.id;
 
   // Cargar los datos del cliente desde la nube (si existen)
-  const { data: fila } = await sbc
+  const { data: filas, error: cargaError } = await sbc
     .from('datos_clientes')
     .select('contenido')
     .eq('perfil_id', miPerfilId)
-    .maybeSingle();
+    .order('actualizado_en', { ascending: false })
+    .limit(1);
 
-  if(fila && fila.contenido){
-    A.cl = fila.contenido.cl || [];
-    A.cal = (fila.contenido.cal || []).map(r => ({...r, fecha: r.fecha ? new Date(r.fecha) : null}));
+  if(cargaError){
+    console.error('Error cargando datos:', cargaError);
+    toast('No se pudieron cargar tus datos guardados. Contacta a Baquero & Asociados.', 'err');
+  } else if(filas && filas[0] && filas[0].contenido){
+    A.cl = filas[0].contenido.cl || [];
+    A.cal = (filas[0].contenido.cal || []).map(r => ({...r, fecha: r.fecha ? new Date(r.fecha) : null}));
   }
 
   // Registrar el inicio de sesión (visible para el admin, sin datos tributarios)
@@ -3182,10 +3186,15 @@ document.addEventListener('keydown', e=>{
   const { data: perfil } = await sbc.from('perfiles').select('rol, activo').eq('id', data.session.user.id).single();
   if(perfil && perfil.rol === 'cliente' && perfil.activo){
     miPerfilId = data.session.user.id;
-    const { data: fila } = await sbc.from('datos_clientes').select('contenido').eq('perfil_id', miPerfilId).maybeSingle();
-    if(fila && fila.contenido){
-      A.cl = fila.contenido.cl || [];
-      A.cal = (fila.contenido.cal || []).map(r => ({...r, fecha: r.fecha ? new Date(r.fecha) : null}));
+    const { data: filas } = await sbc
+      .from('datos_clientes')
+      .select('contenido')
+      .eq('perfil_id', miPerfilId)
+      .order('actualizado_en', { ascending: false })
+      .limit(1);
+    if(filas && filas[0] && filas[0].contenido){
+      A.cl = filas[0].contenido.cl || [];
+      A.cal = (filas[0].contenido.cal || []).map(r => ({...r, fecha: r.fecha ? new Date(r.fecha) : null}));
     }
     document.getElementById('loginGate').style.display = 'none';
     initApp();
@@ -3201,14 +3210,39 @@ lsSave = function(){
   if(miPerfilId){
     clearTimeout(syncTimer);
     syncTimer = setTimeout(async () => {
-      await sbc.from('datos_clientes').upsert({
-        perfil_id: miPerfilId,
-        contenido: {
+      try {
+        const payload = {
           cl: A.cl,
           cal: A.cal.map(r => ({...r, fecha: r.fecha instanceof Date ? r.fecha.toISOString() : r.fecha}))
-        },
-        actualizado_en: new Date().toISOString()
-      }, { onConflict: 'perfil_id' });
+        };
+
+        // Verifica si ya existe una fila para este cliente, y decide
+        // entre insertar o actualizar (así no depende de una restricción
+        // de unicidad en la base de datos)
+        const { data: existente } = await sbc
+          .from('datos_clientes')
+          .select('id')
+          .eq('perfil_id', miPerfilId)
+          .maybeSingle();
+
+        let resultado;
+        if(existente){
+          resultado = await sbc.from('datos_clientes')
+            .update({ contenido: payload, actualizado_en: new Date().toISOString() })
+            .eq('perfil_id', miPerfilId);
+        } else {
+          resultado = await sbc.from('datos_clientes')
+            .insert({ perfil_id: miPerfilId, contenido: payload, actualizado_en: new Date().toISOString() });
+        }
+
+        if(resultado.error){
+          console.error('Error guardando en la nube:', resultado.error);
+          toast('No se pudo guardar en la nube. Revisa tu conexión.', 'err');
+        }
+      } catch(e){
+        console.error('Error de sincronización:', e);
+        toast('No se pudo guardar en la nube. Revisa tu conexión.', 'err');
+      }
     }, 1200);
   }
   return ok;
