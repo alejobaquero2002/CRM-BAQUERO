@@ -498,7 +498,12 @@ select.fc{cursor:pointer} textarea.fc{resize:vertical;min-height:78px}
       <div class="sb-stats-row"><span class="sb-stats-l">🔴 Urgentes</span><span class="sb-stats-v" id="ss-urg">0</span></div>
       <div class="sb-stats-row"><span class="sb-stats-l">✅ Declarados</span><span class="sb-stats-v" id="ss-dec">0</span></div>
     </div>
-    <div class="sb-foot"><span class="sb-dot"></span>Sesión activa · v3.0<br>AG 2025 · &copy;2026 Baquero &amp; Asociados</div>
+    <div class="sb-foot">
+      <a href="#" onclick="cerrarSesionCRM();return false;" style="color:#C8D4E8;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;font-size:12.5px">
+        <i class="fas fa-right-from-bracket"></i> Cerrar sesión
+      </a>
+      <span class="sb-dot"></span>Sesión activa · v3.0<br>AG 2025 · &copy;2026 Baquero &amp; Asociados
+    </div>
   </aside>
 
   <!-- MAIN -->
@@ -3175,6 +3180,16 @@ async function crmLogin(){
   initApp();
 }
 
+function cerrarSesionCRM(){
+  sbc.auth.signOut();
+  miPerfilId = null;
+  A.cl = [];
+  A.cal = [];
+  document.getElementById('loginGate').style.display = 'flex';
+  document.getElementById('crmLoginUser').value = '';
+  document.getElementById('crmLoginPass').value = '';
+}
+
 document.addEventListener('keydown', e=>{
   if(e.key==='Enter' && document.getElementById('loginGate').style.display!=='none') crmLogin();
 });
@@ -3186,12 +3201,16 @@ document.addEventListener('keydown', e=>{
   const { data: perfil } = await sbc.from('perfiles').select('rol, activo').eq('id', data.session.user.id).single();
   if(perfil && perfil.rol === 'cliente' && perfil.activo){
     miPerfilId = data.session.user.id;
-    const { data: filas } = await sbc
+    const { data: filas, error: cargaError } = await sbc
       .from('datos_clientes')
       .select('contenido')
       .eq('perfil_id', miPerfilId)
       .order('actualizado_en', { ascending: false })
       .limit(1);
+    if(cargaError){
+      console.error('Error cargando datos (auto-login):', cargaError);
+      toast('No se pudieron cargar tus datos guardados. Revisa tu conexión.', 'err');
+    }
     if(filas && filas[0] && filas[0].contenido){
       A.cl = filas[0].contenido.cl || [];
       A.cal = (filas[0].contenido.cal || []).map(r => ({...r, fecha: r.fecha ? new Date(r.fecha) : null}));
