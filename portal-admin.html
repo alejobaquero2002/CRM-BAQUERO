@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Administrador | Baquero &amp; Asociados Contables</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy:#1A2B4A; --navy-l:#243559; --navy-d:#111E35;
+  --gold:#C9A84C; --gold-l:#E8C96A; --gold-p:#F5E9C5;
+  --cream:#F5F0E8;
+  --red:#DC3545; --red-l:#FFF3F3;
+  --yellow:#FFC107; --yellow-l:#FFFBEC;
+  --green:#28A745; --green-l:#F0FFF4;
+  --blue:#0D6EFD;
+  --sw:260px; --hh:64px;
+  --r:12px; --rs:8px;
+  --sh:0 1px 4px rgba(26,43,74,.08),0 4px 16px rgba(26,43,74,.06);
+  --shl:0 8px 32px rgba(26,43,74,.15);
+  --tr:.2s ease;
+  --fb:'Inter',sans-serif; --fd:'Playfair Display',serif;
+  --bg:#F4F6FA; --sf:#FFFFFF; --sf2:#F8F9FA;
+  --bd:#E2E8F0; --tx:#1A2B4A; --txm:#6B7A99;
+  --sbg:#1A2B4A; --stx:#C8D4E8;
+}
+[data-theme=dark]{
+  --bg:#0F1623; --sf:#1A2535; --sf2:#212D40;
+  --bd:#2D3F5A; --tx:#E8EDF5; --txm:#7A8FA8;
+  --sbg:#111E35;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--tx);line-height:1.6;font-size:14px;transition:background var(--tr),color var(--tr)}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+.hidden{display:none !important}
+
+#loginScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;
+  background:rgba(17,30,53,.97);padding:22px}
+.ob-card{background:#fff;border-radius:20px;padding:44px 38px;max-width:420px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;overflow:hidden}
+.ob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;
+  background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy))}
+.ob-logo{width:74px;height:74px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;box-shadow:0 0 0 3px var(--navy),0 0 0 6px var(--gold),0 8px 24px rgba(26,43,74,.35)}
+.ob-logo span{font-family:var(--fd);font-weight:800;font-size:26px;color:var(--navy)}
+.ob-title{font-family:var(--fd);font-size:21px;font-weight:800;color:var(--navy);margin-bottom:4px;text-align:center}
+.ob-sub{color:#8a8a8a;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:26px;text-align:center}
+.loginErr{color:var(--red);font-size:12.5px;text-align:center;margin-top:8px;display:none}
+.loginHint{margin-top:18px;background:var(--cream);border-radius:var(--rs);padding:10px 13px;font-size:12px;color:var(--navy);text-align:center;border-left:3px solid var(--gold)}
+
+.shell{display:flex;min-height:100vh}
+.sb{width:var(--sw);min-width:var(--sw);background:var(--sbg);display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;transition:transform var(--tr)}
+.sb::-webkit-scrollbar{width:3px}
+.sb-brand{padding:22px 18px 16px;border-bottom:1px solid rgba(201,168,76,.2);text-align:center}
+.sb-logo{width:66px;height:66px;border-radius:50%;background:#fff;display:flex;align-items:center;
+  justify-content:center;margin:0 auto 12px;box-shadow:0 0 0 3px var(--gold),0 4px 16px rgba(201,168,76,.4)}
+.sb-logo span{font-family:var(--fd);font-weight:800;font-size:22px;color:var(--navy)}
+.sb-name{color:#fff;font-weight:700;font-size:12.5px;line-height:1.3}
+.sb-sub{color:var(--gold);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.sb-nav{padding:10px 0;flex:1}
+.sb-sec{color:rgba(200,212,232,.35);font-size:9.5px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:12px 18px 5px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--stx);font-size:13px;
+  font-weight:500;border-left:3px solid transparent;cursor:pointer;transition:all var(--tr)}
+.ni:hover{background:rgba(201,168,76,.08);color:#fff}
+.ni.active{background:rgba(201,168,76,.12);color:var(--gold);border-left-color:var(--gold)}
+.ni i{width:16px;text-align:center;font-size:13px}
+.sb-foot{padding:14px 18px;border-top:1px solid rgba(201,168,76,.12);text-align:center;
+  color:rgba(200,212,232,.4);font-size:10.5px}
+.sb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;
+  margin-right:5px;box-shadow:0 0 5px var(--green);animation:sbdot 2s infinite}
+@keyframes sbdot{0%,100%{opacity:1}50%{opacity:.25}}
+
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:var(--hh);background:var(--sf);border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:12px;padding:0 22px;position:sticky;top:0;z-index:90}
+.tb-title{font-weight:700;font-size:16px;flex:1}
+.tb-date{background:var(--gold-p);color:var(--navy);border-radius:var(--rs);padding:5px 11px;font-size:11.5px;font-weight:600}
+.tb-actions{display:flex;align-items:center;gap:7px}
+.ic-btn{width:34px;height:34px;border-radius:var(--rs);border:1px solid var(--bd);background:var(--sf);
+  color:var(--txm);display:flex;align-items:center;justify-content:center;font-size:13px;transition:all var(--tr)}
+.ic-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+.page{display:none;padding:22px;flex:1;animation:pagein .18s ease}
+.page.active{display:block}
+@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pg-title{font-size:20px;font-weight:800;color:var(--tx);margin-bottom:3px}
+.pg-sub{font-size:12.5px;color:var(--txm);margin-bottom:20px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:var(--sf);border-radius:var(--r);padding:18px;border:1px solid var(--bd);
+  box-shadow:var(--sh);position:relative;overflow:hidden;transition:transform var(--tr),box-shadow var(--tr)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);border-radius:var(--r) var(--r) 0 0}
+.kpi.grn::before{background:var(--green)} .kpi.red::before{background:var(--red)}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shl)}
+.kpi-lbl{color:var(--txm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.kpi-val{font-size:34px;font-weight:800;line-height:1}
+.kpi-sub{color:var(--txm);font-size:11px;margin-top:5px}
+.kpi-ico{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:30px;opacity:.06}
+
+.card{background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-title{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px}
+.card-bd{padding:18px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--rs);
+  font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all var(--tr);white-space:nowrap}
+.btn-navy{background:var(--navy);color:#fff} .btn-navy:hover{background:var(--navy-d)}
+.btn-gold{background:var(--gold);color:var(--navy)} .btn-gold:hover{background:var(--gold-l)}
+.btn-out{background:transparent;border:1.5px solid var(--bd);color:var(--tx)} .btn-out:hover{border-color:var(--gold);color:var(--gold)}
+.btn-red{background:var(--red);color:#fff} .btn-red:hover{background:#b02a37}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse}
+th{background:var(--navy);color:#fff;padding:10px 13px;text-align:left;font-size:11.5px;font-weight:600;white-space:nowrap}
+td{padding:10px 13px;border-bottom:1px solid var(--bd);font-size:12.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--sf2)}
+.cliName{font-weight:700;color:var(--tx)} .cliMeta{color:var(--txm);font-size:11.5px;margin-top:1px}
+
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.b-red{background:var(--red-l);color:var(--red)} .b-grn{background:var(--green-l);color:#155724}
+.b-nav{background:rgba(26,43,74,.1);color:var(--navy)} .b-gld{background:var(--gold-p);color:#7A5A00}
+
+.toggle{position:relative;width:40px;height:22px;border-radius:20px;background:var(--bd);cursor:pointer;border:none;flex-shrink:0;transition:background var(--tr)}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left var(--tr);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.toggle.on::after{left:20px}
+.toggleRow{display:flex;align-items:center;gap:8px}
+
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--txm);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.fc{width:100%;padding:8px 12px;background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rs);
+  color:var(--tx);font-size:13px;outline:none;transition:border-color var(--tr),box-shadow var(--tr)}
+.fc:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.12)}
+
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:200;display:none;
+  align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.mo.open{display:flex}
+.md{background:var(--sf);border-radius:var(--r);width:92%;max-width:480px;max-height:92vh;
+  overflow-y:auto;box-shadow:var(--shl);animation:mdin .2s ease}
+.md.wide{max-width:640px}
+@keyframes mdin{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+.md-hd{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.md-title{font-weight:700;font-size:15px}
+.md-x{background:none;border:none;font-size:19px;color:var(--txm);cursor:pointer;padding:3px;line-height:1}
+.md-bd{padding:22px}
+.md-ft{padding:14px 22px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:8px}
+
+.tl{padding:0;list-style:none}
+.tl-item{position:relative;padding:0 0 14px 26px;border-left:2px solid var(--bd);margin-left:7px}
+.tl-item:last-child{border-left-color:transparent;padding-bottom:0}
+.tl-dot{position:absolute;left:-7px;top:2px;width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--sf);background:var(--gold)}
+.tl-date{font-size:10px;color:var(--txm);font-weight:600;margin-bottom:2px}
+.tl-txt{font-size:12px;color:var(--tx);font-weight:500}
+
+.al{padding:11px 15px;border-radius:var(--rs);font-size:12.5px;font-weight:500;display:flex;align-items:flex-start;gap:9px;margin-bottom:10px}
+.al-b{background:#EFF6FF;color:#1D4ED8;border-left:4px solid var(--blue)}
+
+.searchBox{padding:8px 12px;border:1.5px solid var(--bd);border-radius:var(--rs);font-size:13px;width:220px;font-family:var(--fb)}
+.searchBox:focus{outline:none;border-color:var(--gold)}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:13px 20px;border-radius:var(--rs);
+  font-size:13.5px;box-shadow:var(--shl);display:none;z-index:99;border-left:3px solid var(--gold)}
+.toast.show{display:block}
+
+.protoBanner{background:var(--gold-p);color:#7A5A00;font-size:12px;text-align:center;padding:6px;letter-spacing:.2px}
+
+@media(max-width:900px){
+  .sb{transform:translateX(-100%)}
+  .sb.open{transform:translateX(0)}
+  .main{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="ob-card">
+    <div class="ob-logo"><span>AB</span></div>
+    <div class="ob-title">Portal Administrador</div>
+    <div class="ob-sub">Baquero &amp; Asociados Contables</div>
+    <div class="fg">
+      <label class="fl">Correo</label>
+      <input class="fc" id="loginUser" type="email" placeholder="tu correo de administrador">
+    </div>
+    <div class="fg">
+      <label class="fl">Contraseña</label>
+      <input class="fc" id="loginPass" type="password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-navy" style="width:100%;justify-content:center;padding:11px" onclick="intentarLogin()" id="loginBtn">
+      <i class="fas fa-lock"></i> Ingresar
+    </button>
+    <p class="loginErr" id="loginErr">Correo o contraseña incorrectos.</p>
+    <div class="loginHint">Conectado a Supabase — usa el correo y contraseña de tu cuenta admin.</div>
+  </div>
+</div>
+
+<div class="shell" id="adminApp" style="display:none">
+
+  <aside class="sb" id="sb">
+    <div class="sb-brand">
+      <div class="sb-logo"><span>AB</span></div>
+      <div class="sb-name">Baquero &amp; Asociados<br>Contables</div>
+      <div class="sb-sub">Portal Administrador</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">General</div>
+      <div class="ni active" onclick="go('dashboard')"><i class="fas fa-gauge"></i> Dashboard</div>
+      <div class="ni" onclick="go('clientes')"><i class="fas fa-users"></i> Clientes</div>
+      <div class="sb-sec">Cuenta</div>
+      <div class="ni" onclick="cerrarSesion()"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</div>
+    </nav>
+    <div class="sb-foot"><span class="sb-dot"></span>Sesión activa · admin</div>
+  </aside>
+
+  <div class="main">
+    <div class="protoBanner">Prototipo navegable — datos de ejemplo, sin conexión a información real de clientes</div>
+    <header class="topbar">
+      <button class="ic-btn" onclick="toggleSB()"><i class="fas fa-bars"></i></button>
+      <div class="tb-title" id="tbTitle">Dashboard</div>
+      <div class="tb-date" id="tbDate"></div>
+      <div class="tb-actions">
+        <button class="ic-btn" id="darkBtn" onclick="toggleDark()"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page active" id="page-dashboard">
+      <div class="pg-title">Dashboard</div>
+      <div class="pg-sub">Resumen de los accesos de tus clientes a la herramienta.</div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-lbl">Clientes totales</div><div class="kpi-val" id="kTotal">0</div><div class="kpi-sub">Cuentas creadas</div><i class="fas fa-users kpi-ico"></i></div>
+        <div class="kpi grn"><div class="kpi-lbl">Accesos activos</div><div class="kpi-val" id="kActivos">0</div><div class="kpi-sub">Pueden ingresar</div><i class="fas fa-circle-check kpi-ico"></i></div>
+        <div class="kpi red"><div class="kpi-lbl">Desactivados</div><div class="kpi-val" id="kInactivos">0</div><div class="kpi-sub">Acceso suspendido</div><i class="fas fa-ban kpi-ico"></i></div>
+        <div class="kpi"><div class="kpi-lbl">Conexiones hoy</div><div class="kpi-val" id="kHoy">0</div><div class="kpi-sub">Inicios de sesión</div><i class="fas fa-bolt kpi-ico"></i></div>
+      </div>
+
+      <div class="al al-b"><i class="fas fa-circle-info" style="margin-top:2px"></i>
+        <div>Desde aquí puedes crear accesos para tus clientes, activarlos o desactivarlos, y revisar su actividad dentro de la herramienta. Nunca puedes ver la información tributaria que ellos gestionan — solo su actividad de uso.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-title"><i class="fas fa-clock-rotate-left"></i> Actividad reciente</div></div>
+        <div class="card-bd">
+          <ul class="tl" id="actividadGlobal"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-clientes">
+      <div class="pg-title">Clientes de la herramienta</div>
+      <div class="pg-sub">Crea accesos, actívalos o desactívalos, y revisa su actividad.</div>
+
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><i class="fas fa-users"></i> Usuarios</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="searchBox" id="buscador" placeholder="Buscar cliente..." oninput="renderTabla()">
+            <button class="btn btn-gold" onclick="abrirModalNuevo()"><i class="fas fa-plus"></i> Nuevo cliente</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Cliente</th><th>Usuario</th><th>Estado</th><th>Última actividad</th><th>Acciones</th></tr></thead>
+            <tbody id="tablaClientes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="mo" id="modalNuevo">
+  <div class="md">
+    <div class="md-hd"><div class="md-title"><i class="fas fa-user-plus"></i> Nuevo acceso de cliente</div><button class="md-x" onclick="cerrarModal('modalNuevo')">&times;</button></div>
+    <div class="md-bd">
+      <div class="fg"><label class="fl">Nombre del cliente / empresa</label><input class="fc" id="nNombre" placeholder="Ej. Comercializadora XYZ S.A.S."></div>
+      <div class="fg"><label class="fl">Correo electrónico</label><input class="fc" id="nEmail" type="email" placeholder="cliente@correo.com"></div>
+      <div class="fg"><label class="fl">Usuario de acceso</label><input class="fc" id="nUsuario" placeholder="Ej. comercializadoraxyz"></div>
+      <div class="fg"><label class="fl">Contraseña temporal</label><input class="fc" id="nPass"></div>
+    </div>
+    <div class="md-ft"><button class="btn btn-out" onclick="cerrarModal('modalNuevo')">Cancelar</button><button class="btn btn-gold" onclick="crearCliente()"><i class="fas fa-check"></i> Crear acceso</button></div>
+  </div>
+</div>
+
+<div class="mo" id="modalActividad">
+  <div class="md wide">
+    <div class="md-hd"><div class="md-title" id="actClienteNombre"><i class="fas fa-clock-rotate-left"></i> Actividad del cliente</div><button class="md-x" onclick="cerrarModal('modalActividad')">&times;</button></div>
+    <div class="md-bd">
+      <ul class="tl" id="actividadLista"></ul>
+      <div class="al al-b" style="margin-top:16px"><i class="fas fa-shield-halved" style="margin-top:2px"></i>
+        <div>Aquí solo se muestra la actividad dentro de la aplicación. La información tributaria y de clientes que este usuario gestiona en su CRM nunca es visible para el administrador.</div>
+      </div>
+    </div>
+    <div class="md-ft"><button class="btn btn-out" onclick="cerrarModal('modalActividad')">Cerrar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONEXIÓN A SUPABASE
+   ============================================================ */
+const SUPABASE_URL = 'https://zpauvdweyjzxkmkmartu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ALDtBJChYbrKvj_QVgs9Mg_yfEKo8Sc';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let CLIENTES = [];   // se llena desde la tabla "perfiles"
+let DARK = false;
+
+/* ============================================================
+   LOGIN REAL
+   ============================================================ */
+async function intentarLogin(){
+  const email = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  const err = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  err.style.display='none';
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock"></i> Ingresar';
+
+  if(error){
+    err.textContent = 'Correo o contraseña incorrectos.';
+    err.style.display='block';
+    return;
+  }
+
+  // Verificar que quien entró es admin (no un cliente)
+  const { data: perfil, error: perfErr } = await sb
+    .from('perfiles')
+    .select('rol, nombre_empresa')
+    .eq('id', data.user.id)
+    .single();
+
+  if(perfErr || !perfil || perfil.rol !== 'admin'){
+    err.textContent = 'Esta cuenta no tiene permisos de administrador.';
+    err.style.display='block';
+    await sb.auth.signOut();
+    return;
+  }
+
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('adminApp').style.display='flex';
+  updateFecha();
+  await renderTodo();
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') intentarLogin();
+});
+
+async function cerrarSesion(){
+  await sb.auth.signOut();
+  document.getElementById('adminApp').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+}
+
+// Si ya había una sesión activa (recargaste la página), entra directo
+(async()=>{
+  const { data } = await sb.auth.getSession();
+  if(data.session){
+    const { data: perfil } = await sb.from('perfiles').select('rol').eq('id', data.session.user.id).single();
+    if(perfil && perfil.rol === 'admin'){
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('adminApp').style.display='flex';
+      updateFecha();
+      await renderTodo();
+    }
+  }
+})();
+
+const PG_TITLES = {dashboard:'Dashboard', clientes:'Clientes'};
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+id+"'"))n.classList.add('active');});
+  document.getElementById('tbTitle').textContent = PG_TITLES[id]||id;
+  if(id==='clientes') renderTabla();
+  document.getElementById('sb').classList.remove('open');
+}
+function toggleSB(){document.getElementById('sb').classList.toggle('open');}
+function toggleDark(){
+  DARK=!DARK;
+  document.documentElement.setAttribute('data-theme', DARK?'dark':'light');
+  document.getElementById('darkBtn').innerHTML = DARK?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+}
+function updateFecha(){
+  document.getElementById('tbDate').textContent = new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+async function renderTodo(){
+  await cargarClientes();
+  renderStats();
+  renderTabla();
+  await renderActividadGlobal();
+}
+
+async function cargarClientes(){
+  const { data, error } = await sb
+    .from('perfiles')
+    .select('id, nombre_empresa, email, rol, activo, creado_en, ultima_actividad')
+    .eq('rol', 'cliente')
+    .order('creado_en', { ascending: false });
+
+  if(error){
+    toast('No se pudo cargar la lista de clientes.');
+    console.error(error);
+    CLIENTES = [];
+    return;
+  }
+  CLIENTES = data;
+}
+
+function renderStats(){
+  document.getElementById('kTotal').textContent = CLIENTES.length;
+  document.getElementById('kActivos').textContent = CLIENTES.filter(c=>c.activo).length;
+  document.getElementById('kInactivos').textContent = CLIENTES.filter(c=>!c.activo).length;
+  const hoy = new Date().toDateString();
+  document.getElementById('kHoy').textContent = CLIENTES.filter(c=>c.ultima_actividad && new Date(c.ultima_actividad).toDateString()===hoy).length;
+}
+
+async function renderActividadGlobal(){
+  const ul = document.getElementById('actividadGlobal');
+  const { data, error } = await sb
+    .from('actividad')
+    .select('accion, creado_en, perfil_id, perfiles(nombre_empresa)')
+    .order('creado_en', { ascending: false })
+    .limit(6);
+
+  if(error || !data || data.length===0){
+    ul.innerHTML = '<p style="color:var(--txm);font-size:13px">Sin actividad registrada todavía.</p>';
+    return;
+  }
+  ul.innerHTML = data.map(a=>`
+    <li class="tl-item"><div class="tl-dot"></div>
+      <div class="tl-date">${esc(fmtFecha(a.creado_en))}</div>
+      <div class="tl-txt"><b>${esc(a.perfiles?.nombre_empresa||'Cliente')}</b> — ${esc(a.accion)}</div>
+    </li>`).join('');
+}
+
+function fmtFecha(iso){
+  if(!iso) return '—';
+  return new Date(iso).toLocaleString('es-CO', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+}
+
+function renderTabla(){
+  const q = document.getElementById('buscador')?.value.toLowerCase() || '';
+  const tbody = document.getElementById('tablaClientes');
+  const filtrados = CLIENTES.filter(c => c.nombre_empresa.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
+  tbody.innerHTML = filtrados.map(c => `
+    <tr>
+      <td><div class="cliName">${esc(c.nombre_empresa)}</div><div class="cliMeta">${esc(c.email)}</div></td>
+      <td>${esc(c.email)}</td>
+      <td><div class="toggleRow"><button class="toggle ${c.activo?'on':''}" onclick="toggleEstado('${c.id}')"></button>
+        <span class="badge ${c.activo?'b-grn':'b-red'}">${c.activo?'Activo':'Inactivo'}</span></div></td>
+      <td>${c.ultima_actividad ? esc(fmtFecha(c.ultima_actividad)) : 'Aún no ingresa'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-out btn-sm" onclick="verActividad('${c.id}')"><i class="fas fa-eye"></i> Actividad</button>
+        <button class="btn btn-red btn-sm" onclick="eliminarCliente('${c.id}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--txm);padding:30px">No se encontraron clientes.</td></tr>`;
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function toggleEstado(id){
+  const c = CLIENTES.find(x=>x.id===id);
+  const nuevoEstado = !c.activo;
+  const { error } = await sb.from('perfiles').update({ activo: nuevoEstado }).eq('id', id);
+  if(error){ toast('No se pudo actualizar el estado.'); console.error(error); return; }
+
+  await sb.from('actividad').insert({
+    perfil_id: id,
+    accion: `Acceso ${nuevoEstado?'reactivado':'desactivado'} por el administrador`
+  });
+
+  await renderTodo();
+  toast(`${c.nombre_empresa}: acceso ${nuevoEstado?'activado':'desactivado'}.`);
+}
+
+async function eliminarCliente(id){
+  const c = CLIENTES.find(x=>x.id===id);
+  if(!confirm(`¿Eliminar el acceso de "${c.nombre_empresa}"? Esta acción no se puede deshacer.`)) return;
+
+  const { error } = await sb.from('perfiles').delete().eq('id', id);
+  if(error){ toast('No se pudo eliminar. Puede requerir la Edge Function para borrar también el login.'); console.error(error); return; }
+
+  await renderTodo();
+  toast('Cliente eliminado del panel.');
+}
+
+async function verActividad(id){
+  const c = CLIENTES.find(x=>x.id===id);
+  document.getElementById('actClienteNombre').innerHTML = `<i class="fas fa-clock-rotate-left"></i> ${esc(c.nombre_empresa)}`;
+
+  const { data, error } = await sb
+    .from('actividad')
+    .select('accion, creado_en')
+    .eq('perfil_id', id)
+    .order('creado_en', { ascending: false })
+    .limit(30);
+
+  document.getElementById('actividadLista').innerHTML = (data && data.length) ? data.map(a=>`
+    <li class="tl-item"><div class="tl-dot"></div>
+      <div class="tl-date">${esc(fmtFecha(a.creado_en))}</div>
+      <div class="tl-txt">${esc(a.accion)}</div>
+    </li>`).join('') : '<p style="color:var(--txm)">Sin actividad registrada.</p>';
+  document.getElementById('modalActividad').classList.add('open');
+}
+
+function abrirModalNuevo(){
+  document.getElementById('nNombre').value='';
+  document.getElementById('nEmail').value='';
+  document.getElementById('nUsuario').value='';
+  document.getElementById('nPass').value = generarClave();
+  document.getElementById('modalNuevo').classList.add('open');
+}
+function generarClave(){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s='';
+  for(let i=0;i<8;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+async function crearCliente(){
+  const nombre_empresa = document.getElementById('nNombre').value.trim();
+  const email = document.getElementById('nEmail').value.trim();
+  const password = document.getElementById('nPass').value.trim();
+
+  if(!nombre_empresa || !email || !password){
+    toast('Completa nombre, correo y contraseña.');
+    return;
+  }
+
+  const { data: sessionData } = await sb.auth.getSession();
+  const token = sessionData?.session?.access_token;
+  if(!token){ toast('Tu sesión expiró, vuelve a iniciar sesión.'); return; }
+
+  const btn = document.querySelector('#modalNuevo .btn-gold');
+  const original = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/Crear-Cliente`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ nombre_empresa, email, password })
+    });
+    const result = await resp.json();
+
+    if(!resp.ok){
+      toast(result.error || 'No se pudo crear el cliente.');
+      return;
+    }
+
+    cerrarModal('modalNuevo');
+    await renderTodo();
+    toast(`Acceso creado para ${nombre_empresa}.`);
+  } catch(e){
+    toast('Error de conexión al crear el cliente.');
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.innerHTML = original;
+  }
+}
+function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>

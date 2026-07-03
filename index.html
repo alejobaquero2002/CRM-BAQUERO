@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Tributario 2026 | Baquero & Asociados Contables</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1A2B4A; --navy-d:#111E35; --gold:#C9A84C; --gold-l:#E8C96A; --gold-p:#F5E9C5; --cream:#F5F0E8;
+  --green:#28A745; --bd:#E2E8F0; --tx:#1A2B4A; --txm:#5A6B8C;
+  --fb:'Inter',sans-serif; --fd:'Playfair Display',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);color:var(--tx);line-height:1.6;background:#fff}
+h1,h2,h3{font-family:var(--fd)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* HERO */
+header{background:linear-gradient(160deg,var(--navy),var(--navy-d));color:#fff;padding:70px 0 90px;position:relative;overflow:hidden}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy))}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:56px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mono{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--navy);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:800;font-size:16px;box-shadow:0 0 0 2px var(--gold)}
+.brand span{font-weight:700;font-size:14.5px}
+.hero{text-align:center;max-width:720px;margin:0 auto}
+.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold-l);padding:6px 16px;border-radius:30px;font-size:12.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:22px}
+.hero h1{font-size:42px;font-weight:800;line-height:1.15;margin-bottom:18px}
+.hero h1 em{color:var(--gold-l);font-style:normal}
+.hero p{font-size:17px;color:#C8D4E8;margin-bottom:32px}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:8px;font-weight:700;font-size:15px;border:none;cursor:pointer;text-decoration:none;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-out{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff}
+
+/* SECTIONS */
+section{padding:70px 0}
+.section-head{text-align:center;max-width:600px;margin:0 auto 46px}
+.section-head .tag{color:var(--gold);font-weight:700;font-size:12.5px;letter-spacing:1.2px;text-transform:uppercase}
+.section-head h2{font-size:30px;margin-top:8px;color:var(--navy)}
+.section-head p{color:var(--txm);margin-top:10px}
+
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px}
+.feat{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:26px;box-shadow:0 1px 4px rgba(26,43,74,.05)}
+.feat i{width:44px;height:44px;border-radius:10px;background:var(--gold-p);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
+.feat h3{font-size:16.5px;margin-bottom:6px;color:var(--navy)}
+.feat p{font-size:13.5px;color:var(--txm)}
+
+/* PRICING */
+.pricing{background:var(--cream)}
+.price-card{max-width:420px;margin:0 auto;background:#fff;border-radius:16px;border:2px solid var(--gold);padding:40px 34px;text-align:center;box-shadow:0 20px 50px rgba(26,43,74,.12);position:relative}
+.price-card .badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--navy);color:var(--gold-l);font-size:11.5px;font-weight:700;letter-spacing:.5px;padding:6px 18px;border-radius:20px;text-transform:uppercase}
+.price-card h3{font-size:19px;color:var(--navy);margin-top:10px}
+.price-card .amount{font-family:var(--fd);font-size:52px;font-weight:800;color:var(--navy);margin:14px 0 2px}
+.price-card .amount span{font-size:16px;font-weight:600;color:var(--txm)}
+.price-card .period{color:var(--txm);font-size:13.5px;margin-bottom:26px}
+.price-list{list-style:none;text-align:left;margin-bottom:30px}
+.price-list li{display:flex;gap:10px;padding:8px 0;font-size:14.5px;color:var(--tx);border-bottom:1px solid #f0ebe0}
+.price-list li:last-child{border-bottom:none}
+.price-list i{color:var(--green);margin-top:3px}
+#wompi-checkout-container{margin-top:6px}
+
+footer{background:var(--navy);color:#C8D4E8;text-align:center;padding:34px 0;font-size:13px}
+footer b{color:#fff}
+
+@media(max-width:640px){ .hero h1{font-size:30px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">
+        <div class="mono">AB</div>
+        <span>BAQUERO &amp; ASOCIADOS CONTABLES</span>
+      </div>
+    </div>
+    <div class="hero">
+      <div class="pill"><i class="fas fa-star"></i> Temporada de Renta 2026</div>
+      <h1>Gestiona todos tus clientes de <em>declaración de renta</em> en un solo lugar</h1>
+      <p>El CRM Tributario diseñado por contadores, para contadores colombianos. Semáforo de riesgo, vencimientos automáticos por cédula, mensajes de WhatsApp y reportes — todo en una herramienta.</p>
+      <div class="cta-row">
+        <a href="#precio" class="btn btn-gold"><i class="fas fa-rocket"></i> Ver plan y precio</a>
+        <a href="#caracteristicas" class="btn btn-out">Ver características</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="caracteristicas">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag">Todo lo que necesitas</div>
+      <h2>Hecho para la temporada de renta en Colombia</h2>
+      <p>Construido sobre el flujo real de trabajo de una firma contable colombiana.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat"><i class="fas fa-traffic-light"></i><h3>Semáforo de riesgo</h3><p>Identifica de un vistazo qué clientes necesitan atención prioritaria.</p></div>
+      <div class="feat"><i class="fas fa-calendar-check"></i><h3>Vencimientos automáticos</h3><p>Asignación de fechas DIAN según el último dígito de la cédula.</p></div>
+      <div class="feat"><i class="fab fa-whatsapp"></i><h3>Mensajes de WhatsApp</h3><p>Genera recordatorios personalizados listos para enviar.</p></div>
+      <div class="feat"><i class="fas fa-chart-pie"></i><h3>Dashboard con gráficos</h3><p>Visualiza el estado de toda tu cartera de clientes en tiempo real.</p></div>
+      <div class="feat"><i class="fas fa-file-excel"></i><h3>Exportación</h3><p>Exporta a Excel, CSV o PDF cuando lo necesites.</p></div>
+      <div class="feat"><i class="fas fa-shield-halved"></i><h3>Datos protegidos</h3><p>Tu información vive en la nube, cifrada y aislada de otros usuarios.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="precio">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag">Precio</div>
+      <h2>Un solo plan, sin sorpresas</h2>
+      <p>Acceso completo durante toda la temporada de renta.</p>
+    </div>
+    <div class="price-card">
+      <div class="badge">Temporada de Renta 2026</div>
+      <h3>Plan Anual</h3>
+      <div class="amount">$XXX.000<span>COP</span></div>
+      <div class="period">pago único · vigencia de 12 meses</div>
+      <ul class="price-list">
+        <li><i class="fas fa-check-circle"></i> Acceso ilimitado a la herramienta</li>
+        <li><i class="fas fa-check-circle"></i> Clientes y contribuyentes ilimitados</li>
+        <li><i class="fas fa-check-circle"></i> Soporte directo con Baquero &amp; Asociados</li>
+        <li><i class="fas fa-check-circle"></i> Actualizaciones incluidas durante el año</li>
+      </ul>
+
+      <!-- ============================================================
+           WOMPI CHECKOUT — Widget de pago
+           Reemplaza YOUR_PUBLIC_KEY y el monto (en centavos) cuando
+           tengas tus llaves reales de Wompi.
+      ============================================================ -->
+      <form id="wompi-form">
+        <script
+          src="https://checkout.wompi.co/widget.js"
+          data-render="button"
+          data-public-key="pub_test_REEMPLAZAR_CON_TU_LLAVE"
+          data-currency="COP"
+          data-amount-in-cents="XXXXX00"
+          data-reference="renta2026-{{TIMESTAMP}}"
+          data-redirect-url="https://TUHOSTING.netlify.app/gracias.html">
+        </script>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>Baquero &amp; Asociados Contables</b> · CRM Tributario 2026</p>
+    <p style="margin-top:6px">@baquero.contable · Medellín, Colombia</p>
+  </div>
+</footer>
+
+</body>
+</html>
