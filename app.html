@@ -2667,6 +2667,18 @@ function abrirConfig() {
         </div>
         <div class="md-bd">
           <div style="margin-bottom:20px">
+            <div style="font-size:11px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">CUENTA</div>
+            <div style="background:var(--sf2);padding:14px;border-radius:var(--rs);border:1px solid var(--bd);display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fd,serif);font-weight:800;flex-shrink:0">
+                ${(window.miNombreEmpresa||'?').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style="font-weight:700;color:var(--navy);font-size:14px">${window.miNombreEmpresa||'Usuario'}</div>
+                <div style="color:var(--txm);font-size:12.5px">${window.miEmail||''}</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-bottom:20px">
             <div style="font-size:11px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">DATOS DEL SISTEMA</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
               <div style="background:var(--sf2);padding:12px;border-radius:var(--rs);border:1px solid var(--bd)">
@@ -3121,6 +3133,16 @@ const SUPABASE_ANON_KEY = 'sb_publishable_ALDtBJChYbrKvj_QVgs9Mg_yfEKo8Sc';
 const sbc = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let miPerfilId = null;
+
+// Mientras esta bandera esté en false, NINGÚN guardado llega a la nube,
+// sin importar qué función interna lo dispare (calendarios por defecto,
+// renders automáticos, onboarding, etc.). Solo se activa unos segundos
+// después de que el arranque de la app haya terminado por completo,
+// para blindar contra guardados accidentales con datos incompletos.
+let listoParaGuardar = false;
+function habilitarGuardadoTrasArranque(){
+  setTimeout(() => { listoParaGuardar = true; }, 2000);
+}
 let syncTimer = null;
 
 async function crmLogin(){
@@ -3163,6 +3185,8 @@ async function crmLogin(){
   }
 
   miPerfilId = data.user.id;
+  window.miNombreEmpresa = perfil.nombre_empresa;
+  window.miEmail = perfil.email;
 
   // Cargar los datos del cliente desde la nube (si existen)
   const { data: filas, error: cargaError } = await sbc
@@ -3186,11 +3210,14 @@ async function crmLogin(){
 
   document.getElementById('loginGate').style.display = 'none';
   initApp();
+  habilitarGuardadoTrasArranque();
 }
 
 function cerrarSesionCRM(){
   sbc.auth.signOut();
   miPerfilId = null;
+  window.miNombreEmpresa = null;
+  window.miEmail = null;
   A.cl = [];
   A.cal = [];
   document.getElementById('loginGate').style.display = 'flex';
@@ -3206,9 +3233,11 @@ document.addEventListener('keydown', e=>{
 (async()=>{
   const { data } = await sbc.auth.getSession();
   if(!data.session) return;
-  const { data: perfil } = await sbc.from('perfiles').select('rol, activo').eq('id', data.session.user.id).single();
+  const { data: perfil } = await sbc.from('perfiles').select('rol, activo, nombre_empresa, email').eq('id', data.session.user.id).single();
   if(perfil && perfil.rol === 'cliente' && perfil.activo){
     miPerfilId = data.session.user.id;
+    window.miNombreEmpresa = perfil.nombre_empresa;
+    window.miEmail = perfil.email;
     const { data: filas, error: cargaError } = await sbc
       .from('datos_clientes')
       .select('contenido')
@@ -3225,6 +3254,7 @@ document.addEventListener('keydown', e=>{
     }
     document.getElementById('loginGate').style.display = 'none';
     initApp();
+    habilitarGuardadoTrasArranque();
   }
 })();
 
@@ -3237,6 +3267,11 @@ let hayCambiosPendientes = false;
 
 async function guardarEnNube(){
   if(!miPerfilId) return;
+  if(!listoParaGuardar){
+    console.log('Guardado en espera: la app aún está arrancando. Reintentando en breve...');
+    setTimeout(guardarEnNube, 500);
+    return;
+  }
   if(guardadoEnCurso){ hayCambiosPendientes = true; return; }
   guardadoEnCurso = true;
   try {
