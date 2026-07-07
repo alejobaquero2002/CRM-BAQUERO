@@ -3245,24 +3245,17 @@ async function guardarEnNube(){
       cal: A.cal.map(r => ({...r, fecha: r.fecha instanceof Date ? r.fecha.toISOString() : r.fecha}))
     };
 
-    // Verifica si ya existe una fila para este cliente, y decide
-    // entre insertar o actualizar (así no depende de una restricción
-    // de unicidad en la base de datos)
-    const { data: existente } = await sbc
+    // Upsert ATÓMICO: la propia base de datos garantiza que solo
+    // exista una fila por cliente (gracias a la restricción de
+    // unicidad en perfil_id). Ya no se revisa "existe o no" desde
+    // el código — eso era lo que permitía que se crearan filas
+    // duplicadas cuando dos guardados casi coincidían en el tiempo.
+    const resultado = await sbc
       .from('datos_clientes')
-      .select('id')
-      .eq('perfil_id', miPerfilId)
-      .maybeSingle();
-
-    let resultado;
-    if(existente){
-      resultado = await sbc.from('datos_clientes')
-        .update({ contenido: payload, actualizado_en: new Date().toISOString() })
-        .eq('perfil_id', miPerfilId);
-    } else {
-      resultado = await sbc.from('datos_clientes')
-        .insert({ perfil_id: miPerfilId, contenido: payload, actualizado_en: new Date().toISOString() });
-    }
+      .upsert(
+        { perfil_id: miPerfilId, contenido: payload, actualizado_en: new Date().toISOString() },
+        { onConflict: 'perfil_id' }
+      );
 
     if(resultado.error){
       console.error('Error guardando en la nube:', resultado.error);
