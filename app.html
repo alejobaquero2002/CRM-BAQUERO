@@ -3220,52 +3220,78 @@ document.addEventListener('keydown', e=>{
   }
 })();
 
-// Sincroniza A.cl/A.cal a la nube cada vez que lsSave() se llama,
-// sin bloquear la interfaz (se envía en segundo plano, con un pequeño
-// retraso para no saturar la conexión si hay varios guardados seguidos)
+// Sincroniza A.cl/A.cal a la nube cada vez que lsSave() se llama.
+// Se envía DE INMEDIATO (sin retraso) para minimizar el riesgo de
+// perder datos si el usuario cierra el navegador justo después de
+// guardar.
+let guardadoEnCurso = false;
+let hayCambiosPendientes = false;
+
+async function guardarEnNube(){
+  if(!miPerfilId) return;
+  if(guardadoEnCurso){ hayCambiosPendientes = true; return; }
+  guardadoEnCurso = true;
+  try {
+    const payload = {
+      cl: A.cl,
+      cal: A.cal.map(r => ({...r, fecha: r.fecha instanceof Date ? r.fecha.toISOString() : r.fecha}))
+    };
+
+    // Verifica si ya existe una fila para este cliente, y decide
+    // entre insertar o actualizar (así no depende de una restricción
+    // de unicidad en la base de datos)
+    const { data: existente } = await sbc
+      .from('datos_clientes')
+      .select('id')
+      .eq('perfil_id', miPerfilId)
+      .maybeSingle();
+
+    let resultado;
+    if(existente){
+      resultado = await sbc.from('datos_clientes')
+        .update({ contenido: payload, actualizado_en: new Date().toISOString() })
+        .eq('perfil_id', miPerfilId);
+    } else {
+      resultado = await sbc.from('datos_clientes')
+        .insert({ perfil_id: miPerfilId, contenido: payload, actualizado_en: new Date().toISOString() });
+    }
+
+    if(resultado.error){
+      console.error('Error guardando en la nube:', resultado.error);
+      toast('No se pudo guardar en la nube. Revisa tu conexión.', 'err');
+    } else {
+      console.log('Guardado en la nube OK:', new Date().toLocaleTimeString());
+    }
+  } catch(e){
+    console.error('Error de sincronización:', e);
+    toast('No se pudo guardar en la nube. Revisa tu conexión.', 'err');
+  } finally {
+    guardadoEnCurso = false;
+    if(hayCambiosPendientes){
+      hayCambiosPendientes = false;
+      guardarEnNube();
+    }
+  }
+}
+
 const lsSaveOriginal = lsSave;
 lsSave = function(){
   const ok = lsSaveOriginal();
-  if(miPerfilId){
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(async () => {
-      try {
-        const payload = {
-          cl: A.cl,
-          cal: A.cal.map(r => ({...r, fecha: r.fecha instanceof Date ? r.fecha.toISOString() : r.fecha}))
-        };
-
-        // Verifica si ya existe una fila para este cliente, y decide
-        // entre insertar o actualizar (así no depende de una restricción
-        // de unicidad en la base de datos)
-        const { data: existente } = await sbc
-          .from('datos_clientes')
-          .select('id')
-          .eq('perfil_id', miPerfilId)
-          .maybeSingle();
-
-        let resultado;
-        if(existente){
-          resultado = await sbc.from('datos_clientes')
-            .update({ contenido: payload, actualizado_en: new Date().toISOString() })
-            .eq('perfil_id', miPerfilId);
-        } else {
-          resultado = await sbc.from('datos_clientes')
-            .insert({ perfil_id: miPerfilId, contenido: payload, actualizado_en: new Date().toISOString() });
-        }
-
-        if(resultado.error){
-          console.error('Error guardando en la nube:', resultado.error);
-          toast('No se pudo guardar en la nube. Revisa tu conexión.', 'err');
-        }
-      } catch(e){
-        console.error('Error de sincronización:', e);
-        toast('No se pudo guardar en la nube. Revisa tu conexión.', 'err');
-      }
-    }, 1200);
-  }
+  guardarEnNube();
   return ok;
 };
+
+// Respaldo: si el usuario cierra la pestaña o cambia de app justo
+// después de guardar, esto intenta forzar un último guardado.
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden' && miPerfilId){
+    guardarEnNube();
+  }
+});
+window.addEventListener('pagehide', () => {
+  if(miPerfilId) guardarEnNube();
+});
+
 </script>
 </body>
 </html>
