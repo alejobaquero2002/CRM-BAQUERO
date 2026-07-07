@@ -1194,7 +1194,11 @@ const A = {
    INIT (ahora se dispara desde crmLogin() tras autenticar, no solo)
 ===================================================================== */
 function initApp() {
-  lsLoad();
+  // NOTA: ya NO se llama lsLoad() aquí. Los datos (A.cl / A.cal) ya
+  // vienen cargados desde Supabase justo antes de invocar initApp().
+  // Llamar lsLoad() aquí sobrescribía esos datos reales con lo que
+  // hubiera guardado en este navegador (localStorage), causando que
+  // los contribuyentes "desaparecieran" al recargar o abrir otra pestaña.
   updateFecha();
   setInterval(updateFecha, 60000);
 
@@ -3094,6 +3098,10 @@ document.addEventListener('DOMContentLoaded', () => {
    INIT FINAL
 ===================================================================== */
 setTimeout(() => {
+  // Si todavía no ha terminado el login (miPerfilId no está listo),
+  // no hacemos nada: evita renderizar o "arreglar" el calendario con
+  // datos vacíos justo antes de que lleguen los datos reales de la nube.
+  if (typeof miPerfilId !== 'undefined' && !miPerfilId) return;
   calPredeterminadoSilente();
   updBadges();
   renderDashboard();
