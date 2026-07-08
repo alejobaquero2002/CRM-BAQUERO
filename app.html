@@ -491,6 +491,7 @@ select.fc{cursor:pointer} textarea.fc{resize:vertical;min-height:78px}
       <div class="ni" onclick="go('calendario')"><i class="fas fa-table"></i>Calendario Tributario</div>
       <div class="ni" onclick="go('carga')"><i class="fas fa-upload"></i>Carga de Clientes</div>
       <div class="ni" onclick="go('exportar')"><i class="fas fa-download"></i>Exportaciones</div>
+      <div class="ni" onclick="go('exogena')"><i class="fas fa-file-invoice-dollar"></i>Exógena</div>
       <div class="ni" onclick="abrirConfig()"><i class="fas fa-cog"></i>Configuración</div>
     </nav>
     <div class="sb-stats" id="sbStats">
@@ -943,6 +944,85 @@ En Baquero & Asociados Contables podemos ayudarte durante todo el proceso de man
     </div>
 
     <!-- ══════════════════════════════════════════
+         PÁGINA: EXÓGENA (Previsualización)
+    ══════════════════════════════════════════ -->
+    <div class="page" id="page-exogena">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+        <div>
+          <div class="pg-title" style="margin-bottom:0"><i class="fas fa-file-invoice-dollar" style="color:var(--green);margin-right:8px"></i>Previsualización Exógena</div>
+          <div class="pg-sub">Carga y analiza el reporte de información exógena emitido por la DIAN.</div>
+        </div>
+        <button class="btn btn-out btn-sm" id="exoBtnLimpiar" style="display:none" onclick="limpiarReporteExogena()"><i class="fas fa-trash"></i>Limpiar Reporte</button>
+      </div>
+
+      <!-- Estado vacío: cargar archivo -->
+      <div class="card" id="exoEmptyState">
+        <div class="card-bd" style="text-align:center;padding:60px 24px">
+          <div style="width:64px;height:64px;border-radius:16px;background:var(--green-l);color:var(--green);
+              display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 18px">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <div style="font-weight:700;font-size:17px;color:var(--tx);margin-bottom:6px">Cargar Reporte de Exógena</div>
+          <div style="color:var(--txm);font-size:13px;margin-bottom:20px">
+            Selecciona o arrastra el archivo de Excel (<code>.xlsx</code> o <code>.xls</code>)<br>descargado del portal de la DIAN.
+          </div>
+          <div class="drop" id="exoDrop" style="max-width:420px;margin:0 auto" onclick="document.getElementById('exoFile').click()">
+            <div class="drop-ico"><i class="fas fa-file-excel"></i></div>
+            <div class="drop-txt">Arrastra tu archivo aquí</div>
+            <div class="drop-sub">o haz clic para seleccionarlo</div>
+          </div>
+          <input type="file" id="exoFile" accept=".xlsx,.xls" style="display:none" onchange="exogenaArchivoSeleccionado(this.files[0])">
+          <div id="exoCargando" style="display:none;margin-top:16px;color:var(--txm);font-size:13px">
+            <i class="fas fa-spinner fa-spin"></i> Leyendo y clasificando la información...
+          </div>
+          <div id="exoError" class="al al-r" style="display:none;max-width:420px;margin:16px auto 0;text-align:left"></div>
+        </div>
+      </div>
+
+      <!-- Estado con datos cargados -->
+      <div id="exoResultado" style="display:none">
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-bd" style="display:flex;justify-content:flex-end;text-align:right">
+            <div>
+              <div style="font-weight:800;font-size:17px;color:var(--navy);letter-spacing:.3px" id="exoNombre">—</div>
+              <div style="color:var(--txm);font-size:12.5px;margin-top:2px">Cédula / NIT: <span id="exoCedula">—</span> · Año gravable <span id="exoAnio">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+          <i class="fas fa-arrow-trend-up"></i> Límites / Topes DIAN reportados
+        </div>
+        <div class="kpi-grid" id="exoTopesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:24px"></div>
+
+        <div class="card">
+          <div class="card-hd" style="flex-wrap:wrap;gap:10px">
+            <div class="card-title"><i class="fas fa-list"></i>Detalle reportado por terceros</div>
+            <input class="fc" id="exoBuscar" placeholder="Buscar por tercero, detalle, uso..." style="max-width:280px" oninput="renderTablaExogena()">
+          </div>
+          <div class="card-bd" style="padding-bottom:6px">
+            <div class="tabs" id="exoTabs" style="flex-wrap:wrap;overflow-x:auto"></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>Tercero (reporta)</th><th>Detalle / Concepto</th><th>Valor</th><th>Uso sugerido</th><th>Adicional</th>
+              </tr></thead>
+              <tbody id="exoTbody"></tbody>
+            </table>
+          </div>
+          <div class="card-bd" style="padding-top:10px;color:var(--txm);font-size:11.5px" id="exoConteo"></div>
+        </div>
+
+        <div class="al al-b" style="margin-top:16px">
+          <i class="fas fa-circle-info" style="margin-top:2px"></i>
+          <div>Esta previsualización es una guía de apoyo basada en el "Uso declaración sugerida" de la DIAN. No reemplaza el criterio profesional ni la revisión completa de la información antes de presentar la declaración.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
          PÁGINA: EXPORTACIONES
     ══════════════════════════════════════════ -->
     <div class="page" id="page-exportar">
@@ -1212,6 +1292,7 @@ function initApp() {
 
   setupDrop('calDrop','calFile', f => cargarCalArchivo({files:[f], value:''}));
   setupDrop('clDrop','clFile', f => cargarClientesXLS({files:[f], value:''}));
+  setupDrop('exoDrop','exoFile', f => exogenaArchivoSeleccionado(f));
 
   go('dashboard');
   renderCountdown();
@@ -3327,6 +3408,253 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', () => {
   if(miPerfilId) guardarEnNube();
 });
+
+/* =====================================================================
+   MÓDULO: PREVISUALIZACIÓN EXÓGENA (DIAN — Formulario 210)
+   Lee el Excel "Consulta de Información reportada por terceros" que
+   descarga cada persona natural del portal de la DIAN, y clasifica
+   cada concepto según el renglón del Formulario 210 sugerido por la
+   propia DIAN en la columna "Uso declaración Sugerida".
+===================================================================== */
+
+// Valor de la UVT por año gravable (para calcular los límites en pesos)
+const UVT_POR_ANIO = {
+  2019: 34270, 2020: 35607, 2021: 36308, 2022: 38004,
+  2023: 42412, 2024: 47065, 2025: 49799, 2026: 52374
+};
+function uvtDelAnio(anio){
+  if(UVT_POR_ANIO[anio]) return UVT_POR_ANIO[anio];
+  // Si es un año no listado (futuro), se estima con un crecimiento
+  // aproximado del 4.5% anual sobre el último valor oficial conocido.
+  const anios = Object.keys(UVT_POR_ANIO).map(Number);
+  const maxAnio = Math.max(...anios);
+  if(anio > maxAnio) return Math.round(UVT_POR_ANIO[maxAnio] * Math.pow(1.045, anio - maxAnio));
+  const minAnio = Math.min(...anios);
+  return UVT_POR_ANIO[minAnio];
+}
+
+// Definición de los 5 "Topes" que reporta la DIAN al final del archivo
+const EXO_TOPES_DEF = [
+  {clave:'Tope 1 - Ingresos',    label:'Ingresos',     icon:'fa-dollar-sign',    limiteUVT:1400, color:'#3B82F6'},
+  {clave:'Tope 2 - Patrimonio',  label:'Patrimonio',   icon:'fa-building',       limiteUVT:4500, color:'#0EA5E9'},
+  {clave:'Tope 3 - Consumo TC',  label:'Consumos TC',  icon:'fa-credit-card',    limiteUVT:1400, color:'#A855F7'},
+  {clave:'Tope 4 - Movimiento',  label:'Movimiento',   icon:'fa-wave-square',    limiteUVT:1400, color:'#F59E0B'},
+  {clave:'Tope 5 - Compras',     label:'Compras',      icon:'fa-bag-shopping',   limiteUVT:1400, color:'#EF4444'},
+];
+
+let exogenaData = null; // { anio, nombre, cedula, items:[...], topes:{...} }
+
+function exogenaArchivoSeleccionado(file){
+  if(!file) return;
+  const err = document.getElementById('exoError');
+  const cargando = document.getElementById('exoCargando');
+  err.style.display = 'none';
+  cargando.style.display = 'block';
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true});
+      exogenaData = parseExogenaWorkbook(wb);
+      cargando.style.display = 'none';
+      if(!exogenaData || !exogenaData.items || exogenaData.items.length === 0){
+        throw new Error('No se encontraron filas de información en el archivo. Verifica que sea el reporte de exógena descargado de la DIAN.');
+      }
+      renderExogena();
+    } catch(ex){
+      console.error('Error leyendo exógena:', ex);
+      cargando.style.display = 'none';
+      err.textContent = 'No se pudo leer el archivo: ' + ex.message;
+      err.style.display = 'block';
+    }
+  };
+  reader.onerror = function(){
+    cargando.style.display = 'none';
+    err.textContent = 'No se pudo leer el archivo. Intenta de nuevo.';
+    err.style.display = 'block';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseExogenaWorkbook(wb){
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+
+  // Detectar la fila de encabezado buscando "Detalle" y "Valor"
+  let headerRow = -1;
+  for(let i=0;i<Math.min(rows.length,40);i++){
+    const r = rows[i] || [];
+    if(String(r[4]||'').trim().toLowerCase()==='detalle' && String(r[5]||'').trim().toLowerCase()==='valor'){
+      headerRow = i; break;
+    }
+  }
+  if(headerRow === -1) throw new Error('No tiene el formato esperado del reporte de la DIAN.');
+
+  // Metadatos: año, nombre, cédula (buscados en las primeras filas)
+  let anio = null, nombre = '', cedula = '';
+  for(let i=0;i<headerRow;i++){
+    const r = rows[i] || [];
+    const etiqueta = String(r[0]||'').toLowerCase();
+    if(etiqueta.includes('año al que se refiere')) anio = parseInt(String(r[2]||'').replace(/\D/g,''), 10) || null;
+    if(etiqueta.includes('identificación:')) cedula = String(r[2]||'').trim();
+    if(etiqueta.includes('nombres') || etiqueta.includes('razón social:')) nombre = String(r[2]||'').trim();
+  }
+  if(!anio) anio = new Date().getFullYear() - 1;
+
+  const topes = {};
+  const items = [];
+
+  for(let i=headerRow+1; i<rows.length; i++){
+    const r = rows[i] || [];
+    const detalle = r[4];
+    const valor = r[5];
+    if(detalle == null && valor == null) continue;
+
+    const detalleTxt = String(detalle||'').trim();
+    // Filas resumen finales: "Tope 1 - Ingresos", "Tope 2 - Patrimonio", etc.
+    const mTope = detalleTxt.match(/^Tope\s*\d\s*-\s*.+/i);
+    if(mTope && typeof valor === 'number'){
+      topes[detalleTxt] = valor;
+      continue;
+    }
+
+    if(detalle == null || valor == null) continue;
+
+    const usoSugerido = String(r[6]||'').trim();
+    const renglonMatch = usoSugerido.match(/R\s?(\d{1,3})\b/i);
+    const renglon = renglonMatch ? ('R' + renglonMatch[1]) : null;
+    const topeMatch = usoSugerido.match(/tope\s*(\d)/i);
+    const topeNum = topeMatch ? parseInt(topeMatch[1],10) : null;
+
+    items.push({
+      nitTercero: r[0] || '',
+      nombreTercero: r[1] || '',
+      detalle: detalleTxt,
+      valor: typeof valor === 'number' ? valor : (parseFloat(String(valor).replace(/[^\d.-]/g,'')) || 0),
+      usoSugerido: usoSugerido,
+      adicional: r[7] || '',
+      renglon: renglon,
+      topeNum: topeNum
+    });
+  }
+
+  return {anio, nombre: nombre || 'Sin nombre disponible', cedula: cedula || 'No disponible', items, topes};
+}
+
+let exoFiltroActivo = 'todos';
+
+function renderExogena(){
+  if(!exogenaData) return;
+  document.getElementById('exoEmptyState').style.display = 'none';
+  document.getElementById('exoResultado').style.display = 'block';
+  document.getElementById('exoBtnLimpiar').style.display = 'inline-flex';
+
+  document.getElementById('exoNombre').textContent = exogenaData.nombre;
+  document.getElementById('exoCedula').textContent = exogenaData.cedula;
+  document.getElementById('exoAnio').textContent = exogenaData.anio;
+
+  // ---- Tarjetas de Topes ----
+  const uvt = uvtDelAnio(exogenaData.anio);
+  const grid = document.getElementById('exoTopesGrid');
+  grid.innerHTML = EXO_TOPES_DEF.map(t => {
+    const total = exogenaData.topes[t.clave] || 0;
+    const limitePesos = t.limiteUVT * uvt;
+    const supera = total > limitePesos;
+    return `
+      <div class="kpi" style="border-top:3px solid ${supera?'var(--red)':t.color}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:700;color:${t.color};text-transform:uppercase;letter-spacing:.4px">${esc(t.label)}</span>
+          <i class="fas ${t.icon}" style="color:${t.color};opacity:.8"></i>
+        </div>
+        <div style="font-size:11px;color:var(--txm);margin-bottom:2px">TOTAL REPORTADO</div>
+        <div style="font-size:19px;font-weight:800;color:var(--tx)">${fmtCOP(total)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--txm)">
+          <span>LÍMITE (${t.limiteUVT} UVT)</span><span>${fmtCOP(limitePesos)}</span>
+        </div>
+        <div style="margin-top:6px">
+          <span class="badge ${supera?'b-red':'b-grn'}">${supera?'SUPERA LÍMITE':'CUMPLE LÍMITE'}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  // ---- Tabs dinámicos (por renglón detectado + Topes + Otros) ----
+  const conteoRenglon = {};
+  const conteoTope = {1:0,2:0,3:0,4:0,5:0};
+  let otros = 0;
+  exogenaData.items.forEach(it=>{
+    if(it.renglon) conteoRenglon[it.renglon] = (conteoRenglon[it.renglon]||0)+1;
+    else otros++;
+    if(it.topeNum) conteoTope[it.topeNum] = (conteoTope[it.topeNum]||0)+1;
+  });
+  const renglonesOrdenados = Object.keys(conteoRenglon).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+
+  let tabsHtml = `<button class="tab ${exoFiltroActivo==='todos'?'active':''}" onclick="filtrarExogena('todos')">Todos (${exogenaData.items.length})</button>`;
+  renglonesOrdenados.forEach(r=>{
+    tabsHtml += `<button class="tab ${exoFiltroActivo===r?'active':''}" onclick="filtrarExogena('${r}')">${r} (${conteoRenglon[r]})</button>`;
+  });
+  [1,2,3,4,5].forEach(n=>{
+    if(conteoTope[n]>0){
+      const key = 'tope'+n;
+      tabsHtml += `<button class="tab ${exoFiltroActivo===key?'active':''}" onclick="filtrarExogena('${key}')">Tope ${n} (${conteoTope[n]})</button>`;
+    }
+  });
+  if(otros>0) tabsHtml += `<button class="tab ${exoFiltroActivo==='otros'?'active':''}" onclick="filtrarExogena('otros')">Otros (${otros})</button>`;
+  document.getElementById('exoTabs').innerHTML = tabsHtml;
+
+  renderTablaExogena();
+}
+
+function filtrarExogena(clave){
+  exoFiltroActivo = clave;
+  renderExogena();
+}
+
+function renderTablaExogena(){
+  if(!exogenaData) return;
+  const busqueda = (document.getElementById('exoBuscar').value || '').toLowerCase().trim();
+
+  let filtrados = exogenaData.items.filter(it=>{
+    if(exoFiltroActivo === 'todos'){}
+    else if(exoFiltroActivo === 'otros'){ if(it.renglon) return false; }
+    else if(exoFiltroActivo.startsWith('tope')){ if(String(it.topeNum) !== exoFiltroActivo.replace('tope','')) return false; }
+    else { if(it.renglon !== exoFiltroActivo) return false; }
+
+    if(busqueda){
+      const campo = `${it.nombreTercero} ${it.detalle} ${it.usoSugerido}`.toLowerCase();
+      if(!campo.includes(busqueda)) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById('exoTbody');
+  tbody.innerHTML = filtrados.slice(0,500).map(it=>`
+    <tr>
+      <td><div style="font-size:10.5px;color:var(--txm)">NIT: ${esc(it.nitTercero)}</div><div style="font-weight:700">${esc(it.nombreTercero)}</div></td>
+      <td>${esc(it.detalle)}</td>
+      <td style="font-weight:700;white-space:nowrap">${fmtCOP(it.valor)}</td>
+      <td><span class="badge b-nav" style="white-space:normal;text-align:left;line-height:1.4">${esc(it.usoSugerido || 'Sin clasificar')}</span></td>
+      <td>${esc(it.adicional || '-')}</td>
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--txm);padding:24px">Sin resultados con este filtro.</td></tr>`;
+
+  document.getElementById('exoConteo').textContent =
+    `Mostrando ${Math.min(filtrados.length,500)} de ${filtrados.length} registros filtrados (${exogenaData.items.length} en total).`;
+}
+
+function limpiarReporteExogena(){
+  if(!confirm('¿Limpiar el reporte de exógena cargado?')) return;
+  exogenaData = null;
+  exoFiltroActivo = 'todos';
+  document.getElementById('exoEmptyState').style.display = 'block';
+  document.getElementById('exoResultado').style.display = 'none';
+  document.getElementById('exoBtnLimpiar').style.display = 'none';
+  document.getElementById('exoFile').value = '';
+  document.getElementById('exoBuscar').value = '';
+}
+
+function fmtCOP(n){
+  return '$ ' + Math.round(n||0).toLocaleString('es-CO');
+}
 
 </script>
 </body>
